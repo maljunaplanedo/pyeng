@@ -125,3 +125,7 @@ venv.bak/
 dmypy.json
 
 netconfig.txt
+
+# --------------------------------------------------
+
+databases/
