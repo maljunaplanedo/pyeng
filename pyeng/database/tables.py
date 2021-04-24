@@ -8,10 +8,6 @@ class Class(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String)
 
-    class_tasks = relationship("ClassTask", backref="class_")
-    unconf_students = relationship("UnconfUser", backref="class_")
-    students = relationship("User", backref="class_")
-
     def __init__(self, name):
         self.name = name
 
@@ -25,9 +21,6 @@ class Task(Base):
     given = Column(Text)
     answer = Column(Text)
     duration = Column(Integer, nullable=False)
-
-    class_tasks = relationship('ClassTask', backref='task')
-    students_tasks = relationship('StudentsTask', backref="task")
 
     def __init__(self, type, name, given, answer, duration):
         self.type = type
@@ -45,9 +38,8 @@ class ClassTask(Base):
     task_id = Column(Integer, ForeignKey('tasks.id'))
     add_time = Column(Integer, nullable=False)
 
-    class_ = relationship('Class', back_populates='class_tasks')
-    task = relationship('Task', back_populates='class_tasks')
-    students_tasks = relationship('StudentsTask', backref='class_task')
+    class_ = relationship('Class', backref='class_tasks')
+    task = relationship('Task', backref='class_tasks')
 
     def __init__(self, class_, task, add_time):
         self.class_ = class_
@@ -65,7 +57,7 @@ class UnconfUser(Base):
     type = Column(Integer, nullable=False)
     class_id = Column(Integer, ForeignKey('classes.id'))
 
-    class_ = relationship('Class', back_populates="unconf_students")
+    class_ = relationship('Class', backref="unconf_students")
 
     def __init__(self, code, name, surname, type_, class_):
         self.code = code
@@ -78,6 +70,10 @@ class UnconfUser(Base):
 class User(Base):
     __tablename__ = 'users'
 
+    GUEST_TYPE = -1
+    TEACHER_TYPE = 0
+    STUDENT_TYPE = 1
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     login = Column(String, index=True, unique=True, nullable=False)
     password = Column(String, nullable=False)
@@ -86,8 +82,7 @@ class User(Base):
     type = Column(Integer, nullable=False)
     class_id = Column(Integer, ForeignKey('classes.id'))
 
-    class_ = relationship('Class', back_populates='students')
-    students_tasks = relationship('StudentsTask', backref='student')
+    class_ = relationship('Class', backref='students')
 
     def __init__(self, login, password, name, surname, type_, class_):
         self.login = login
@@ -96,6 +91,10 @@ class User(Base):
         self.surname = surname
         self.type = type_
         self.class_ = class_
+
+    @classmethod
+    def get_type(cls, user):
+        return cls.GUEST_TYPE if user is None else user.type
 
 
 class StudentsTask(Base):
@@ -111,9 +110,9 @@ class StudentsTask(Base):
     begin_time = Column(Integer, default=-1)
     add_time = Column(Integer, nullable=False)
 
-    class_task = relationship('ClassTask', back_populates="students_tasks")
-    task = relationship('Task', back_populates="students_tasks")
-    student = relationship('User', back_populates="students_tasks")
+    class_task = relationship('ClassTask', backref="students_tasks")
+    task = relationship('Task', backref="students_tasks")
+    student = relationship('User', backref="students_tasks")
 
     def __init__(self, add_time, class_task, task, student):
         self.add_time = add_time
@@ -129,7 +128,7 @@ class Auth(Base):
     auth_hash = Column(String, nullable=False, index=True)
     user_id = Column(Integer, ForeignKey('users.id'))
 
-    user = relationship('User', back_populates='auths')
+    user = relationship('User', backref='auths')
 
     def __init__(self, auth_hash, user):
         self.auth_hash = auth_hash

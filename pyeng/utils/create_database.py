@@ -1,6 +1,5 @@
-from pyeng.database import Database
+from pyeng.database import Base, engine
 
 
 def create_database():
-    db = Database.get_db()
-    db.create_all()
+    Base.metadata.create_all(engine)

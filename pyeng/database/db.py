@@ -1,3 +1,4 @@
+'''
 from pyeng.database import DATABASE_PATH
 from pyeng.database import Class, Task, ClassTask,\
     UnconfUser, User, StudentsTask, Auth
@@ -32,3 +33,20 @@ class Database:
     def close_session(self):
         self.session.commit()
         self.session.close()
+
+    def get_all(self, table, by):
+        self.open_session()
+
+        result = self.session.query(table).filter(by)
+
+        self.close_session()
+        return result
+
+    def get(self, table, by):
+        return self.get_all(table, by)[0]
+
+    def put(self, value):
+        self.open_session()
+        self.session.add(value)
+        self.close_session()
+'''

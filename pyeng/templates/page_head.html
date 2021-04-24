@@ -1,0 +1,18 @@
+{% set client_type = User.get_type(client) %}
+<div class="header">
+    {% if client_type == User.TEACHER_TYPE %}
+        <a href="/">
+    {% endif %}
+            <h1>LOGO</h1>
+    {% if client_type == User.TEACHER_TYPE %} </a> {% endif %}
+
+    <p>
+        {% if client_type == -1 %}
+            <a href="/auth_page">Войти</a> <a href="/reg_page">Зарегистрироваться</a>
+        {% else %}
+            {{ client.name + ' ' + client.surname }}
+            <a href="/unauth">Выйти</a>
+        {% endif %}
+
+    </p>
+</div>
