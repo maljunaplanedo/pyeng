@@ -1,5 +1,5 @@
-from pyeng.database import Base, engine
+from pyeng.utils.helpers import create_database
 
 
-def create_database():
-    Base.metadata.create_all(engine)
+if __name__ == '__main__':
+    create_database()

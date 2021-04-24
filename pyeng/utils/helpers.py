@@ -1,6 +1,16 @@
+from pyeng.database import Base, engine
 from pyeng.database import Class, Task, ClassTask,\
     UnconfUser, User, StudentsTask, Auth
 from flask import request
+from pyeng.database import Session as DBSession
+
+
+def create_database():
+    Base.metadata.create_all(engine)
+
+
+def create_teachers_account(name, surname):
+    pass
 
 
 def get_client(db):

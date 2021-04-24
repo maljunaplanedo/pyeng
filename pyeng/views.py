@@ -28,16 +28,15 @@ def add_class():
 
 @app.route('/add_class_page', methods=['GET'])
 def add_class_page():
-
     with DBSession() as db:
         client = get_client(db)
-    # if not check_client_type(client, User.TEACHER_TYPE):
-    #     return redirect('/')
+        if not check_client_type(client, User.TEACHER_TYPE):
+            return redirect('/')
 
-    result = render_template('html_begin.html', title="Добавить класс")
-    result += render_template('page_head.html', client=client,
-                              User=User)
-    result += render_template('add_class.html', error=request.args.get('error'))
-    result += render_template('html_end.html')
+        result = render_template('html_begin.html', title="Добавить класс")
+        result += render_template('page_head.html', client=client,
+                                  User=User)
+        result += render_template('add_class.html', error=request.args.get('error'))
+        result += render_template('html_end.html')
 
     return result
