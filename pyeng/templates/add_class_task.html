@@ -1,0 +1,10 @@
+<a href="class_tasks?id={{ class_.id }}">Назад</a>
+<form name="new_class_task" action="add_class_task" method="post">
+	<select name="task_id">
+        {% for task in tasks %}
+            <option value="{{ task.id }}">{{ task.name }}</option>
+        {% endfor %}
+	</select>
+	<input type="hidden" name="class_id" value="{{ class_.id }}">
+	<input type="submit" value="Задать">
+</form>

@@ -31,3 +31,7 @@ def check_client_type(client, *allowed):
 
 def check_class_name(name):
     return isinstance(name, str) and len(name) > 0
+
+
+def check_name(name):
+    return isinstance(name, str) and len(name) > 0 and ' ' not in name
