@@ -1,0 +1,151 @@
+[
+  {
+    "name": "classes",
+    "fields": {
+      "id": "INTEGER PRIMARY KEY AUTOINCREMENT",
+      "name": "TEXT NOT NULL"
+    },
+    "foreign_keys": [],
+    "indexes": []
+  },
+  {
+    "name": "tasks",
+    "fields": {
+      "id": "INTEGER PRIMARY KEY AUTOINCREMENT",
+      "type": "INTEGER NOT NULL",
+      "name": "TEXT NOT NULL",
+      "given": "TEXT",
+      "answer": "TEXT",
+      "duration": "INTEGER NOT NULL"
+    },
+    "foreign_keys": [],
+    "index": []
+  },
+  {
+    "name": "class_tasks",
+    "fields": {
+      "id": "INTEGER PRIMARY KEY AUTOINCREMENT",
+      "class_id": "INTEGER",
+      "task_id": "INTEGER",
+      "add_time": "INTEGER"
+    },
+    "foreign_keys": [
+      {
+        "field": "class_id",
+        "ref_table": "classes",
+        "ref_field": "id"
+      },
+      {
+        "field": "task_id",
+        "ref_table": "tasks",
+        "ref_field": "id"
+      }
+    ],
+    "indexes": []
+  },
+  {
+    "name": "unconf_users",
+    "fields": {
+      "id": "INTEGER PRIMARY KEY AUTOINCREMENT",
+      "code": "TEXT NOT NULL",
+      "name": "TEXT NOT NULL",
+      "surname": "TEXT NOT NULL",
+      "type": "INTEGER NOT NULL",
+      "class_id": "INTEGER"
+    },
+    "foreign_keys": [
+      {
+        "field": "class_id",
+        "ref_table": "classes",
+        "ref_field": "id"
+      }
+    ],
+    "indexes": [
+      {
+        "unique": 1,
+        "name": "idx_code",
+        "on": "code"
+      }
+    ]
+  },
+  {
+    "name": "users",
+    "fields": {
+      "id": "INTEGER PRIMARY KEY AUTOINCREMENT",
+      "login": "TEXT NOT NULL",
+      "password": "TEXT NOT NULL",
+      "name": "TEXT NOT NULL",
+      "surname": "TEXT NOT NULL",
+      "type": "INTEGER NOT NULL",
+      "class_id": "INTEGER"
+    },
+    "foreign_keys": [
+      {
+        "field": "class_id",
+        "ref_table": "classes",
+        "ref_field": "id"
+      }
+    ],
+    "indexes": [
+      {
+        "unique": 1,
+        "name": "idx_login",
+        "on": "login"
+      }
+    ]
+  },
+  {
+    "name": "students_tasks",
+    "fields": {
+      "id": "INTEGER PRIMARY KEY AUTOINCREMENT",
+      "class_task_id": "INTEGER",
+      "task_id": "INTEGER",
+      "student_id": "INTEGER",
+      "status": "INTEGER DEFAULT 0",
+      "result": "INTEGER DEFAULT 0",
+      "answers": "TEXT DEFAULT ''",
+      "begin_time": "INTEGER DEFAULT -1",
+      "add_time": "INTEGER"
+    },
+    "foreign_keys": [
+      {
+        "field": "class_task_id",
+        "ref_table": "class_tasks",
+        "ref_field": "id"
+      },
+      {
+        "field": "task_id",
+        "ref_table": "tasks",
+        "ref_field": "id"
+      },
+      {
+        "field": "student_id",
+        "ref_table": "users",
+        "ref_field": "id"
+      }
+    ],
+    "indexes": []
+  },
+  {
+    "name": "auths",
+    "fields": {
+      "id": "INTEGER PRIMARY KEY AUTOINCREMENT",
+      "auth_hash": "TEXT NOT NULL",
+      "user_id": "INTEGER"
+    },
+    "foreign_keys": [
+      {
+        "field": "user_id",
+        "ref_table": "users",
+        "ref_field": "id"
+      }
+    ],
+    "indexes": [
+      {
+        "unique": 1,
+        "name": "idx_auth_hash",
+        "on": "auth_hash"
+      }
+    ]
+  }
+]
