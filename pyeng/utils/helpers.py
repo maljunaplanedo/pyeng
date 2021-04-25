@@ -14,7 +14,10 @@ def create_database():
 
 
 def create_teachers_account(name, surname):
-    pass
+    with DBSession() as db:
+        teacher = add_unconf_user(db, name, surname, User.TEACHER_TYPE)
+        db.commit()
+        return teacher.code
 
 
 def get_client(db):
@@ -63,6 +66,10 @@ def check_login_format(login):
 
 def check_password_format(password):
     return isinstance(password, str) and len(password) > 0
+
+
+def check_invite_code(invite_code):
+    return isinstance(invite_code, str) and len(invite_code) == INVITE_CODE_LEN
 
 
 def generate_random_string(length):

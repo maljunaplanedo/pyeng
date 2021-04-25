@@ -1,5 +1,5 @@
 from flask import current_app as app
-from flask import render_template, redirect, request
+from flask import render_template, redirect, request, make_response
 from pyeng.utils.helpers import *
 from pyeng.database import Session as DBSession
 from time import time
@@ -9,7 +9,7 @@ from pyeng import AUTH_HASH_LEN, AUTH_HASH_COOKIE_LIFESPAN
 
 @app.route('/test', methods=['GET'])
 def test():
-    return str(request.args.get('name'))
+    return str(request.values.get('name'))
 
 
 @app.route('/add_class', methods=['POST'])
@@ -19,7 +19,7 @@ def add_class():
         if not check_client_type(client, User.TEACHER_TYPE):
             return redirect('/')
 
-        name = request.args.get('name')
+        name = request.values.get('name')
         if not check_class_name(name):
             return redirect('/add_class_page?error=wrongname')
 
@@ -39,7 +39,7 @@ def add_class_page():
         result = render_template('html_begin.html', title="Добавить класс")
         result += render_template('page_head.html', client=client,
                                   User=User)
-        result += render_template('add_class.html', error=request.args.get('error'))
+        result += render_template('add_class.html', error=request.values.get('error'))
         result += render_template('html_end.html')
 
     return result
@@ -52,8 +52,8 @@ def add_class_task():
         if not check_client_type(client, User.TEACHER_TYPE):
             return redirect('/')
 
-        task_id = request.args.get('task_id')
-        class_id = request.args.get('class_id')
+        task_id = request.values.get('task_id')
+        class_id = request.values.get('class_id')
 
         if task_id is None or class_id is None:
             return redirect('/')
@@ -86,7 +86,7 @@ def add_class_task_page():
         if not check_client_type(client, User.TEACHER_TYPE):
             return redirect('/')
 
-        class_id = request.args.get('class_id')
+        class_id = request.values.get('class_id')
         if class_id is None:
             return redirect('/')
         class_id = int(class_id)
@@ -113,9 +113,9 @@ def add_student():
         if not check_client_type(client, User.TEACHER_TYPE):
             return redirect('/')
 
-        name = request.args.get('name')
-        surname = request.args.get('surname')
-        class_id = request.args.get('class_id')
+        name = request.values.get('name')
+        surname = request.values.get('surname')
+        class_id = request.values.get('class_id')
 
         if name is None or surname is None or class_id is None:
             return redirect('/')
@@ -150,7 +150,7 @@ def add_student_page():
         if not check_client_type(client, User.TEACHER_TYPE):
             return redirect('/')
 
-        class_id = request.args.get('class_id')
+        class_id = request.values.get('class_id')
         if class_id is None:
             return redirect('/')
         class_id = int(class_id)
@@ -162,7 +162,7 @@ def add_student_page():
         result = render_template('html_begin.html', title="Добавить ученика в " + class_.name)
         result += render_template('page_head.html', client=client, User=User)
 
-        error = request.args.get('error')
+        error = request.values.get('error')
         result += render_template('add_student.html', class_=class_, error=error)
         result += render_template('html_end.html')
 
@@ -176,11 +176,11 @@ def add_task():
         if not check_client_type(client, User.TEACHER_TYPE):
             return redirect('/')
 
-        type_ = request.args.get('type')
-        name = request.args.get('name')
-        given = request.args.get('given')
-        answer = request.args.get('answer')
-        duration = request.args.get('duration')
+        type_ = request.values.get('type')
+        name = request.values.get('name')
+        given = request.values.get('given')
+        answer = request.values.get('answer')
+        duration = request.values.get('duration')
 
         if (type_ is None or name is None or given is None or
                 answer is None or duration is None):
@@ -209,7 +209,7 @@ def add_task():
         return redirect('/tasks')
 
 
-@app.route('add_task_page', methods=['GET'])
+@app.route('/add_task_page', methods=['GET'])
 def add_task_page():
     with DBSession() as db:
         client = get_client(db)
@@ -219,7 +219,7 @@ def add_task_page():
         result = render_template('html_begin.html', title='Добавить задание')
         result += render_template('page_head.html', client=client, User=User)
 
-        error = request.args.get('error')
+        error = request.values.get('error')
 
         result += render_template('add_task.html', error=error)
         result += render_template('html_end.html')
@@ -227,7 +227,7 @@ def add_task_page():
         return result
 
 
-@app.route('auth', methods=['POST'])
+@app.route('/auth', methods=['POST'])
 def auth():
     with DBSession() as db:
         client = get_client(db)
@@ -236,8 +236,8 @@ def auth():
 
         error_url = 'auth_page?error=wrong'
 
-        login = request.args.get('login')
-        password = request.args.get('password')
+        login = request.values.get('login')
+        password = request.values.get('password')
 
         if login is None or password is None:
             return redirect('/')
@@ -256,9 +256,10 @@ def auth():
         db.add(Auth(auth_hash, candidate))
         db.commit()
 
-        request.set_cookie('auth_hash', auth_hash, max_age=AUTH_HASH_COOKIE_LIFESPAN)
+        response = make_response(redirect('/'))
+        response.set_cookie('auth_hash', auth_hash, max_age=AUTH_HASH_COOKIE_LIFESPAN)
 
-        return redirect('/')
+        return response
 
 
 @app.route('/auth_page', methods=['GET'])
@@ -268,7 +269,7 @@ def auth_page():
         if not check_client_type(client, User.GUEST_TYPE):
             return redirect('/')
 
-        error = request.args.get('error')
+        error = request.values.get('error')
 
         result = render_template('html_begin.html', title='Авторизация')
         result += render_template('auth.html', error=error)
@@ -302,7 +303,7 @@ def class_students():
         if not check_client_type(client, User.TEACHER_TYPE):
             return redirect('/')
 
-        class_id = request.args.get('id')
+        class_id = request.values.get('id')
         if class_id is None:
             return redirect('/')
         class_id = int(class_id)
@@ -327,7 +328,7 @@ def class_task():
         if not check_client_type(client, User.TEACHER_TYPE):
             return redirect('/')
 
-        class_task_id = request.args.get('id')
+        class_task_id = request.values.get('id')
         if class_task_id is None:
             return redirect('/')
         class_task_id = int(class_task_id)
@@ -358,7 +359,7 @@ def class_tasks():
         if not check_client_type(client, User.TEACHER_TYPE):
             return redirect('/')
 
-        class_id = request.args.get('id')
+        class_id = request.values.get('id')
         if class_id is None:
             return redirect('/')
 
@@ -387,6 +388,61 @@ def index():
         result = render_template('html_begin.html', title='Система тестирования')
         result += render_template('page_head.html', client=client, User=User)
         result += render_template('index.html')
+        result += render_template('html_end.html')
+
+        return result
+
+
+@app.route('/reg', methods=['POST'])
+def reg():
+    with DBSession() as db:
+        client = get_client(db)
+        if not check_client_type(client, User.GUEST_TYPE):
+            return redirect('/')
+
+        invite_code = request.values.get('invite_code')
+        login = request.values.get('login')
+        password = request.values.get('password')
+
+        error_url = 'reg_page?error={error}'
+
+        if invite_code is None or login is None or password is None:
+            return redirect('/')
+
+        if not check_invite_code(invite_code):
+            return redirect(error_url.format(error='notexist'))
+        if not check_login_format(login):
+            return redirect(error_url.format(error='loginnotvalid'))
+        if not check_password_format(password):
+            return redirect(error_url.format(error='passwordnotvalid'))
+
+        unconf_user = db.query(UnconfUser).filter(UnconfUser.code == invite_code).first()
+        if unconf_user is None:
+            return redirect(error_url.format(error='notexist'))
+
+        if db.query(User).filter(User.login == login).count() > 0:
+            return redirect(error_url.format(error='loginexists'))
+
+        password = generate_password_hash(password)
+        db.add(User(login, password, unconf_user.name, unconf_user.surname,
+                    unconf_user.type, unconf_user.class_))
+        db.delete(unconf_user)
+
+        db.commit()
+        return redirect('auth_page')
+
+
+@app.route('/reg_page', methods=['GET'])
+def reg_page():
+    with DBSession() as db:
+        client = get_client(db)
+        if not check_client_type(client, User.GUEST_TYPE):
+            return redirect('/')
+
+        error = request.values.get('error')
+
+        result = render_template('html_begin.html', title='Регистрация')
+        result += render_template('reg.html', error=error)
         result += render_template('html_end.html')
 
         return result

@@ -39,8 +39,10 @@ class ClassTask(Base):
     task_id = Column(Integer, ForeignKey('tasks.id'))
     add_time = Column(Integer, nullable=False)
 
-    class_ = relationship('Class', backref=backref('class_tasks', order_by='ClassTask.add_time.desc()'))
-    task = relationship('Task', backref=backref('class_tasks', order_by='ClassTask.add_time.desc()'))
+    class_ = relationship('Class', backref=backref('class_tasks', order_by='ClassTask.add_time.desc()',
+                                                   cascade="all, delete-orphan"))
+    task = relationship('Task', backref=backref('class_tasks', order_by='ClassTask.add_time.desc()',
+                                                cascade="all, delete-orphan"))
 
     def __init__(self, class_, task, add_time):
         self.class_ = class_
@@ -58,7 +60,7 @@ class UnconfUser(Base):
     type = Column(Integer, nullable=False)
     class_id = Column(Integer, ForeignKey('classes.id'))
 
-    class_ = relationship('Class', backref="unconf_students")
+    class_ = relationship('Class', backref=backref("unconf_students", cascade="all, delete-orphan"))
 
     def __init__(self, code, name, surname, type_, class_):
         self.code = code
@@ -84,7 +86,7 @@ class User(Base):
     type = Column(Integer, nullable=False)
     class_id = Column(Integer, ForeignKey('classes.id'))
 
-    class_ = relationship('Class', backref='students')
+    class_ = relationship('Class', backref=backref('students', cascade="all, delete-orphan"))
 
     def __init__(self, login, password, name, surname, type_, class_):
         self.login = login
@@ -117,9 +119,12 @@ class StudentsTask(Base):
     begin_time = Column(Integer, default=-1)
     add_time = Column(Integer, nullable=False)
 
-    class_task = relationship('ClassTask', backref=backref('students_tasks', order_by='StudentsTask.add_time.desc()'))
-    task = relationship('Task', backref=backref('students_tasks', order_by='StudentsTask.add_time.desc()'))
-    student = relationship('User', backref=backref('students_tasks', order_by='StudentsTask.add_time.desc()'))
+    class_task = relationship('ClassTask', backref=backref('students_tasks', order_by='StudentsTask.add_time.desc()',
+                                                           cascade="all, delete-orphan"))
+    task = relationship('Task', backref=backref('students_tasks', order_by='StudentsTask.add_time.desc()',
+                                                cascade="all, delete-orphan"))
+    student = relationship('User', backref=backref('students_tasks', order_by='StudentsTask.add_time.desc()',
+                                                   cascade="all, delete-orphan"))
 
     def __init__(self, add_time, class_task, task, student):
         self.add_time = add_time
@@ -147,7 +152,7 @@ class Auth(Base):
     auth_hash = Column(String, nullable=False, index=True)
     user_id = Column(Integer, ForeignKey('users.id'))
 
-    user = relationship('User', backref='auths')
+    user = relationship('User', backref=backref('auths', cascade="all, delete-orphan"))
 
     def __init__(self, auth_hash, user):
         self.auth_hash = auth_hash
