@@ -1,6 +1,7 @@
 from pyeng.database import Base
 from sqlalchemy import Column, String, Integer, ForeignKey, Text
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
+import time
 
 
 class Class(Base):
@@ -38,8 +39,8 @@ class ClassTask(Base):
     task_id = Column(Integer, ForeignKey('tasks.id'))
     add_time = Column(Integer, nullable=False)
 
-    class_ = relationship('Class', backref='class_tasks')
-    task = relationship('Task', backref='class_tasks')
+    class_ = relationship('Class', backref=backref('class_tasks', order_by='ClassTask.add_time.desc()'))
+    task = relationship('Task', backref=backref('class_tasks', order_by='ClassTask.add_time.desc()'))
 
     def __init__(self, class_, task, add_time):
         self.class_ = class_
@@ -64,7 +65,8 @@ class UnconfUser(Base):
         self.name = name
         self.surname = surname
         self.type = type_
-        self.class_ = class_
+        if class_ is not None:
+            self.class_ = class_
 
 
 class User(Base):
@@ -90,7 +92,8 @@ class User(Base):
         self.name = name
         self.surname = surname
         self.type = type_
-        self.class_ = class_
+        if class_ is not None:
+            self.class_ = class_
 
     @classmethod
     def get_type(cls, user):
@@ -100,25 +103,41 @@ class User(Base):
 class StudentsTask(Base):
     __tablename__ = 'students_tasks'
 
+    NOT_STARTED_STATUS = 0
+    RUNNING_STATUS = 1
+    FINISHED_STATUS = 2
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     class_task_id = Column(Integer, ForeignKey('class_tasks.id'))
     task_id = Column(Integer, ForeignKey('tasks.id'))
     student_id = Column(Integer, ForeignKey('users.id'))
-    status = Column(Integer, default=0)
+    status = Column(Integer, default=NOT_STARTED_STATUS)
     result = Column(Integer, default=0)
     answers = Column(Text, default='')
     begin_time = Column(Integer, default=-1)
     add_time = Column(Integer, nullable=False)
 
-    class_task = relationship('ClassTask', backref="students_tasks")
-    task = relationship('Task', backref="students_tasks")
-    student = relationship('User', backref="students_tasks")
+    class_task = relationship('ClassTask', backref=backref('students_tasks', order_by='StudentsTask.add_time.desc()'))
+    task = relationship('Task', backref=backref('students_tasks', order_by='StudentsTask.add_time.desc()'))
+    student = relationship('User', backref=backref('students_tasks', order_by='StudentsTask.add_time.desc()'))
 
     def __init__(self, add_time, class_task, task, student):
         self.add_time = add_time
         self.class_task = class_task
         self.task = task
         self.student = student
+
+    def update_time(self):
+        if self.status == self.NOT_STARTED_STATUS:
+            return int(2e9)
+        if self.status == self.FINISHED_STATUS:
+            return int(-2e9)
+
+        current_time = time.time()
+        end_time = self.begin_time + self.task.duration
+        if current_time > end_time:
+            self.status = self.FINISHED_STATUS
+        return end_time - current_time
 
 
 class Auth(Base):

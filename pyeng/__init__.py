@@ -6,3 +6,8 @@ def create_app():
     with app.app_context():
         from pyeng import views
     return app
+
+
+INVITE_CODE_LEN = 8
+AUTH_HASH_LEN = 32
+AUTH_HASH_COOKIE_LIFESPAN = 60 * 60 * 24 * 365 * 10

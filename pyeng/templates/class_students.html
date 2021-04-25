@@ -1,0 +1,23 @@
+<a href="classes.php">Назад</a>
+<br>Ученики {{ class_.name }}: <br>
+<ul>
+  {% for student in class_.students %}
+    <li>
+			<a href="student?id={{ student.id }}">{{ student.name + ' ' + student.surname }}</a>
+			<a href="remove_student?id={{ student.id }}">Удалить</a>
+    </li>
+  {% endfor %}
+</ul>
+<a href="add_student_page?class_id={{ class_.id }}">Добавить ученика</a><br />
+
+Незарегестрированные ученики {{ class_.name }}: <br />
+<ul>
+  {% for student in class_.unconf_students %}
+
+		<li>
+            {{ student.name + ' ' + student.surname }}
+			Пригласительный код: {{ student.code }}
+			<a href="remove_unconf_student?id={{ student.id }}">Удалить</a>
+		</li>
+  {% endfor %}
+</ul>

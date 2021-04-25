@@ -1,0 +1,8 @@
+<p>Ученик {{ student.name }} {{ student.surname }} добавлен в класс {{ class_.name }}.
+Для регистрации дайте ему этот пригласительный код:
+  <b>{{ student.code }}</b>
+  <br/>
+
+  <a href="/class_students?id={{ class_.id }}">К списку учеников {{ class_.name }}</a>
+
+</p>

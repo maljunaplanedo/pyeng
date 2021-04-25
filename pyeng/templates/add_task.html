@@ -1,0 +1,30 @@
+<a href="tasks">Назад</a>
+
+<form name="new_task" action="add_task" method="post">
+
+	<input type="text" placeholder="Тип задания" name="type">
+	<input type="text" placeholder="Название задания" name="name">
+	<textarea name="given" placeholder="Условие"></textarea>
+	<textarea name="answer" placeholder="Ответы"></textarea>
+	<input type="text" name="duration" placeholder="Время выполнения">
+	<input type="submit" name="submit" value="Добавить">
+
+</form>
+
+{% if error %}
+    <p>
+        {% if error == 'wrongtype' %}
+            Такого типа задания не существует.
+        {% elif error == 'wrongname' %}
+            Так назвать задание нельзя.
+        {% elif error == 'wronggiven' %}
+            У задания не может быть такое условие.
+        {% elif error == 'wronganswer' %}
+            У задания не может быть такой ответ.
+        {% elif error == 'wrongduration' %}
+            У задания не может быть такая продолжительность выполнения.
+        {% else %}
+            Ошибка
+        {% endif %}
+    </p>
+{% endif %}

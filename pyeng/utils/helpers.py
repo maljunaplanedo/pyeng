@@ -3,6 +3,10 @@ from pyeng.database import Class, Task, ClassTask,\
     UnconfUser, User, StudentsTask, Auth
 from flask import request
 from pyeng.database import Session as DBSession
+from pyeng import INVITE_CODE_LEN
+import random
+import string
+import time
 
 
 def create_database():
@@ -35,3 +39,38 @@ def check_class_name(name):
 
 def check_name(name):
     return isinstance(name, str) and len(name) > 0 and ' ' not in name
+
+
+def check_task_name(name):
+    return isinstance(name, str) and len(name) > 0
+
+
+def check_task_given(given):
+    return isinstance(given, str) and len(given) > 0
+
+
+def check_task_answer_format(answer):
+    return isinstance(answer, str) and len(answer) > 0
+
+
+def check_task_duration(duration):
+    return isinstance(duration, int) and duration <= 604800
+
+
+def check_login_format(login):
+    return isinstance(login, str) and len(login) > 0
+
+
+def check_password_format(password):
+    return isinstance(password, str) and len(password) > 0
+
+
+def generate_random_string(length):
+    return ''.join([random.choice(string.ascii_lowercase) for i in range(length)])
+
+
+def add_unconf_user(db, name, surname, type_, class_=None):
+    invite_code = generate_random_string(INVITE_CODE_LEN)
+    unconf_user = UnconfUser(invite_code, name, surname, type_, class_)
+    db.add(unconf_user)
+    return unconf_user

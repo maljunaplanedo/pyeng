@@ -1,0 +1,12 @@
+<a href="/">Назад</a>
+<ul>
+  {% for class_ in classes %}
+    <li>
+      {{ class_.name }}
+      <a href="class_students?id={{ class_.id }}">Ученики</a>
+      <a href="class_tasks?id={{ class_.id }}">Задания</a>
+      <a href="remove_class?id={{ class_.id }}">Удалить</a>
+    </li>
+  {% endfor %}
+</ul>
+<a href="add_class_page">Добавить класс</a>

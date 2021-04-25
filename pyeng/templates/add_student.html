@@ -1,0 +1,22 @@
+<a href="class_students?id={{ class_.id }}">Назад</a>
+
+<form name="new_student" action="add_student" method="post">
+
+	<input type="text" placeholder="Имя" name="name">
+	<input type="text" placeholder="Фамилия" name="surname">
+	<input type="hidden" value="{{ class_.id }}" name="class_id">
+	<input type="submit" name="submit" value="Добавить">
+
+</form>
+
+{% if error %}
+    <p>
+      {% if error == 'wrongname' %}
+        У ученика не может быть такое имя.
+      {% elif error == 'wrongsurname' %}
+        У ученика не может быть такая фамилия.
+      {% else %}
+        Ошибка
+      {% endif %}
+    </p>
+{% endif %}
