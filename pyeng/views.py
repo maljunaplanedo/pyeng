@@ -599,7 +599,7 @@ def student_page():
         return result
 
 
-@app.route('/students_task')
+@app.route('/students_task', methods=['GET'])
 def students_task_page():
     with DBSession() as db:
         client = get_client(db)
@@ -634,3 +634,82 @@ def students_task_page():
         result += render_template('html_end.html')
 
         return result
+
+
+@app.route('/task', methods=['GET'])
+def task_page():
+    with DBSession() as db:
+        client = get_client(db)
+        if not check_client_type(client, User.TEACHER_TYPE):
+            return redirect('/')
+
+        task_id = request.values.get('id')
+        if task_id is None:
+            return redirect('/')
+        task_id = int(task_id)
+
+        task = db.query(Task).get(task_id)
+        if task is None:
+            return redirect('/')
+
+        result = render_template('html_begin.html', title=f'Задание {task.name}')
+        result += render_template('page_head.html', client=client, User=User)
+        result += render_template('task.html', task=task)
+        result += render_template('html_end.html')
+
+        return result
+
+
+# ---------------------------------
+
+
+@app.route('/task_runner_page')
+def task_runner_page():
+    with DBSession() as db:
+        client = get_client(db)
+        if not check_client_type(client, User.STUDENT_TYPE):
+            return redirect('/')
+
+        students_task_id = request.values.get('id')
+        if students_task_id is None:
+            return redirect('/')
+        students_task_id = int(students_task_id)
+
+        result = render_template('html_begin.html', title='Тестирующая система',
+                                 enable_testing_system=students_task_id)
+        result += render_template('page_head.html', client=client, User=User)
+        result += render_template('html_end.html')
+
+        return result
+
+
+@app.route('/tasks')
+def tasks_page():
+    with DBSession() as db:
+        client = get_client(db)
+        if not check_client_type(client, User.TEACHER_TYPE):
+            return redirect('/')
+
+        tasks = db.query(Task).all()
+
+        result = render_template('html_begin.html', title='Задания')
+        result += render_template('page_head.html', client=client, User=User)
+        result += render_template('tasks.html', tasks=tasks)
+        result += render_template('html_end.html')
+
+        return result
+
+
+@app.route('/unauth')
+def unauth():
+    with DBSession() as db:
+        auth_hash = request.cookies.get('auth_hash')
+        if auth_hash is None:
+            return redirect('/')
+        response = make_response('/')
+        response.set_cookie('auth_hash', '', expires=0)
+
+        db.query(Auth).filter(Auth.auth_hash == auth_hash).delete()
+        db.commit()
+
+        return response

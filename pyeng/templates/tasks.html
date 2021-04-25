@@ -1,0 +1,14 @@
+<a href="/">Назад</a>
+<ul>
+  {% for task in tasks %}
+    <li>
+      <a href="task?id={{ task.id }}">
+        {{ task.type }} {{ task.name }}
+      </a>
+      <a href="remove_task?id={{ task.id }}">
+        Удалить
+      </a>
+    </li>
+  {% endfor %}
+</ul><br />
+<a href="add_task_page">Добавить задание</a>
