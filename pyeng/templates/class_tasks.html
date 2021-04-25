@@ -4,7 +4,7 @@
     {% for class_task in class_.class_tasks %}
         <li>
             <a href="task?id={{ class_task.task.id }}">
-                {{ class_task.task.type + ' ' + class_task.task.name }}
+                {{ class_task.task.type }} {{ class_task.task.name }}
             </a>
             <a href="class_task?id={{ class_task.id }}">
                 Результаты учеников

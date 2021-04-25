@@ -61,8 +61,8 @@ def add_class_task():
         task_id = int(task_id)
         class_id = int(class_id)
 
-        task = db.query(Task).filter(Task.id == task_id).first()
-        class_ = db.query(Class).filter(Class.id == class_id).first()
+        task = db.query(Task).get(task_id)
+        class_ = db.query(Class).get(class_id)
 
         if task is None or class_ is None:
             return redirect('/')
@@ -91,7 +91,7 @@ def add_class_task_page():
             return redirect('/')
         class_id = int(class_id)
 
-        class_ = db.query(Class).filter(Class.id == class_id).first()
+        class_ = db.query(Class).get(class_id)
         if class_ is None:
             return redirect('/')
 
@@ -120,7 +120,7 @@ def add_student():
         if name is None or surname is None or class_id is None:
             return redirect('/')
 
-        class_ = db.query(Class).filter(Class.id == class_id).first()
+        class_ = db.query(Class).get(class_id)
         if class_ is None:
             return redirect('/')
 
@@ -155,7 +155,7 @@ def add_student_page():
             return redirect('/')
         class_id = int(class_id)
 
-        class_ = db.query(Class).filter(Class.id == class_id).first()
+        class_ = db.query(Class).get(class_id)
         if class_ is None:
             return redirect('/')
 
@@ -308,7 +308,7 @@ def class_students_page():
             return redirect('/')
         class_id = int(class_id)
 
-        class_ = db.query(Class).filter(Class.id == class_id).first()
+        class_ = db.query(Class).get(class_id)
         if class_ is None:
             return redirect('/')
 
@@ -333,7 +333,7 @@ def class_task_page():
             return redirect('/')
         class_task_id = int(class_task_id)
 
-        class_task = db.query(ClassTask).filter(ClassTask.id == class_task_id).first()
+        class_task = db.query(ClassTask).get(class_task_id)
         if class_task is None:
             return redirect('/')
 
@@ -364,7 +364,7 @@ def class_tasks():
             return redirect('/')
 
         class_id = int(class_id)
-        class_ = db.query(Class).filter(Class.id == class_id).first()
+        class_ = db.query(Class).get(class_id)
         if class_ is None:
             return redirect('/')
 
@@ -420,7 +420,7 @@ def reg():
         if unconf_user is None:
             return redirect(error_url.format(error='notexist'))
 
-        if db.query(User).filter(User.login == login).count() > 0:
+        if db.query(User).filter(User.login == login).exists():
             return redirect(error_url.format(error='loginexists'))
 
         password = generate_password_hash(password)
@@ -460,7 +460,7 @@ def remove_class():
             return redirect('/')
 
         class_id = int(class_id)
-        class_ = db.query(Class).filter(Class.id == class_id).first()
+        class_ = db.query(Class).get(class_id)
         if class_ is None:
             redirect('/')
         db.delete(class_)
@@ -482,7 +482,7 @@ def remove_class_task():
             return redirect('/')
 
         class_task_id = int(class_task_id)
-        class_task = db.query(ClassTask).filter(ClassTask.id == class_task_id).first()
+        class_task = db.query(ClassTask).get(class_task_id)
         if class_task is None:
             return redirect('/')
 
@@ -506,7 +506,7 @@ def remove_student():
             return redirect('/')
         student_id = int(student_id)
 
-        student = db.query(User).filter(User.id == student_id).first()
+        student = db.query(User).get(student_id)
         if student is None:
             return redirect('/')
 
@@ -530,7 +530,7 @@ def remove_task():
         if task_id is None:
             return redirect('/')
         task_id = int(task_id)
-        task = db.query(Task).filter(Task.id == task_id).first()
+        task = db.query(Task).get(task_id)
         if task is None:
             return redirect('/')
 
@@ -553,7 +553,7 @@ def remove_unconf_student():
             return redirect('/')
         student_id = int(student_id)
 
-        student = db.query(User).filter(User.id == student_id).first()
+        student = db.query(User).get(student_id)
         if student is None:
             return redirect('/')
 
@@ -564,3 +564,73 @@ def remove_unconf_student():
 
         return redirect(f'class_students?id={class_id}')
 
+
+@app.route('/student', methods=['GET'])
+def student_page():
+    with DBSession() as db:
+        client = get_client(db)
+        if not check_client_type(client, User.TEACHER_TYPE, User.STUDENT_TYPE):
+            return redirect('/')
+
+        student_id = request.values.get('id')
+        if student_id is None:
+            return redirect('/')
+
+        student = db.query(User).get(student_id)
+        if (student is None or student.type != User.STUDENT_TYPE or
+                (client.type == User.STUDENT_TYPE and client.id != student.id)):
+            return redirect('/')
+
+        for students_task in student.students_tasks:
+            students_task.update_time()
+        db.commit()
+
+        if client.type == User.STUDENT_TYPE:
+            running_task = student.get_running_task()
+            if running_task is not None:
+                return redirect(f'/task_runner_page?id={running_task.id}')
+
+        result = render_template('html_begin.html', title=student.name + ' ' + student.surname)
+        result += render_template('page_head.html', client=client, User=User)
+        result += render_template('student.html', is_teacher=client.type == User.TEACHER_TYPE,
+                                  student=student)
+        result += render_template('html_end.html')
+
+        return result
+
+
+@app.route('/students_task')
+def students_task_page():
+    with DBSession() as db:
+        client = get_client(db)
+        if not check_client_type(client, User.TEACHER_TYPE, User.STUDENT_TYPE):
+            return redirect('/')
+
+        students_task_id = request.values.get('id')
+        if students_task_id is None:
+            return redirect('/')
+
+        students_task = db.query(StudentsTask).get(students_task_id)
+        if students_task is None:
+            return redirect('/')
+
+        student = students_task.student
+        if client.type == User.STUDENT_TYPE and client.id != student.id:
+            return redirect('/')
+
+        students_task.update_time()
+        db.commit()
+
+        if client.type == User.STUDENT_TYPE:
+            running_task = student.get_running_task()
+            if running_task is not None:
+                return redirect(f'/task_runner_page?id={running_task.id}')
+
+        result = render_template('html_begin.html',
+                                 title=f'Задание {students_task.task.name}')
+        result += render_template('page_head.html', client=client, User=User)
+        result += render_template('students_task.html', is_teacher=client.type == User.TEACHER_TYPE,
+                                  students_task=students_task, StudentsTask=StudentsTask)
+        result += render_template('html_end.html')
+
+        return result

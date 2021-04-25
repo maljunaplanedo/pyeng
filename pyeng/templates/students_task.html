@@ -1,0 +1,26 @@
+{% set student = students_task.student %}
+{% set task = students_task.task %}
+{% if is_teacher or students_task.status == StudentsTask.FINISHED_STATUS %}
+  <a href="student?id={{ student.id }}">Назад</a>
+  Задание:
+  {% if is_teacher %}
+    <a href="task?id={{ task.id }}">
+  {% endif %}
+      {{ task.type }} {{ task.name }}
+  {% if is_teacher %}
+    </a>
+  {% endif %}
+
+  Статус: {{ task.status }}
+  Результат: {{ task.result }}
+  Условия: {{ task.given }}
+  Ответы: {{ students_task.answers }}
+  Правильные ответы: {{ task.answer }}
+  Время начала: {{ students_task.begin_time }}
+  Было дано времени: {{ task.duration }}
+
+{% else %}
+
+  <a href="task_runner_page?id={{ students_task.id }}">Перейти к выполнению</a>
+
+{% endif %}

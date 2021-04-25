@@ -1,0 +1,27 @@
+<h5>{{ student.name + ' ' + student.surname }}</h5>
+{% if is_teacher %}
+    <a href="class_students?id={{ student.class_.id }}">Ко всем ученикам</a>
+    <br/>
+{% endif %}
+
+Заданные задания:
+<ul>
+    {% for students_task in student.students_tasks %}
+        <li>
+            {% if is_teacher %}
+                <a href="task?id={{ students_task.task.id }}">
+            {% endif %}
+                    {{ students_task.task.type }} {{ students_task.task.name }}
+            {% if is_teacher %}
+                </a>
+            {% endif %}
+
+            <br />Статус: {{ students_task.status }}<br />
+            Результат: {{ students_task.result }}<br />
+            <a href="students_task?id={{ students_task.id }}">Перейти к решению</a>
+            {% if is_teacher %}
+                <a href="class_task?id={{ students_task.class_task.id }}">Результаты класса</a>
+            {% endif %}
+        </li>
+    {% endfor %}
+</ul>

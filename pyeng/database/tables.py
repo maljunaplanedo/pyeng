@@ -97,6 +97,12 @@ class User(Base):
         if class_ is not None:
             self.class_ = class_
 
+    def get_running_task(self):
+        for students_task in self.students_tasks:
+            if students_task.status == StudentsTask.RUNNING_STATUS:
+                return students_task
+        return None
+
     @classmethod
     def get_type(cls, user):
         return cls.GUEST_TYPE if user is None else user.type
