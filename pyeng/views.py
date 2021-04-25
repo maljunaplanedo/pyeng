@@ -297,7 +297,7 @@ def classes():
 
 
 @app.route('/class_students', methods=['GET'])
-def class_students():
+def class_students_page():
     with DBSession() as db:
         client = get_client(db)
         if not check_client_type(client, User.TEACHER_TYPE):
@@ -322,7 +322,7 @@ def class_students():
 
 
 @app.route('/class_task', methods=['GET'])
-def class_task():
+def class_task_page():
     with DBSession() as db:
         client = get_client(db)
         if not check_client_type(client, User.TEACHER_TYPE):
@@ -333,20 +333,20 @@ def class_task():
             return redirect('/')
         class_task_id = int(class_task_id)
 
-        this_class_task = db.query(ClassTask).filter(ClassTask.id == class_task_id).first()
-        if this_class_task is None:
+        class_task = db.query(ClassTask).filter(ClassTask.id == class_task_id).first()
+        if class_task is None:
             return redirect('/')
 
-        for students_task in this_class_task.students_tasks:
+        for students_task in class_task.students_tasks:
             students_task.update_time()
         db.commit()
 
         result = render_template('html_begin.html',
-                                 title=f'Результаты {this_class_task.class_.name}' +
-                                 f'по заданию {this_class_task.task.name}')
+                                 title=f'Результаты {class_task.class_.name}' +
+                                 f'по заданию {class_task.task.name}')
 
         result += render_template('page_head.html', client=client, User=User)
-        result += render_template('class_task.html', class_task=this_class_task)
+        result += render_template('class_task.html', class_task=class_task)
         result += render_template('html_end.html')
 
         return result
@@ -446,3 +446,121 @@ def reg_page():
         result += render_template('html_end.html')
 
         return result
+
+
+@app.route('/remove_class', methods=['GET'])
+def remove_class():
+    with DBSession() as db:
+        client = get_client(db)
+        if not check_client_type(client, User.TEACHER_TYPE):
+            return redirect('/')
+
+        class_id = request.values.get('id')
+        if class_id is None:
+            return redirect('/')
+
+        class_id = int(class_id)
+        class_ = db.query(Class).filter(Class.id == class_id).first()
+        if class_ is None:
+            redirect('/')
+        db.delete(class_)
+
+        db.commit()
+
+        return redirect('classes')
+
+
+@app.route('/remove_class_task', methods=['GET'])
+def remove_class_task():
+    with DBSession() as db:
+        client = get_client(db)
+        if not check_client_type(client, User.TEACHER_TYPE):
+            return redirect('/')
+
+        class_task_id = request.values.get('id')
+        if class_task_id is None:
+            return redirect('/')
+
+        class_task_id = int(class_task_id)
+        class_task = db.query(ClassTask).filter(ClassTask.id == class_task_id).first()
+        if class_task is None:
+            return redirect('/')
+
+        class_id = class_task.class_.id
+        db.delete(class_task)
+
+        db.commit()
+
+        return redirect(f'class_tasks?id={class_id}')
+
+
+@app.route('/remove_student', methods=['GET'])
+def remove_student():
+    with DBSession() as db:
+        client = get_client(db)
+        if not check_client_type(client, User.TEACHER_TYPE):
+            return redirect('/')
+
+        student_id = request.values.get('id')
+        if student_id is None:
+            return redirect('/')
+        student_id = int(student_id)
+
+        student = db.query(User).filter(User.id == student_id).first()
+        if student is None:
+            return redirect('/')
+
+        class_id = student.class_.id
+
+        db.delete(student)
+
+        db.commit()
+
+        return redirect(f'class_students?id={class_id}')
+
+
+@app.route('/remove_task', methods=['GET'])
+def remove_task():
+    with DBSession() as db:
+        client = get_client(db)
+        if not check_client_type(client, User.TEACHER_TYPE):
+            return redirect('/')
+
+        task_id = request.values.get('id')
+        if task_id is None:
+            return redirect('/')
+        task_id = int(task_id)
+        task = db.query(Task).filter(Task.id == task_id).first()
+        if task is None:
+            return redirect('/')
+
+        db.delete(task)
+
+        db.commit()
+
+        return redirect('tasks')
+
+
+@app.route('/remove_unconf_student', methods=['GET'])
+def remove_unconf_student():
+    with DBSession() as db:
+        client = get_client(db)
+        if not check_client_type(client, User.TEACHER_TYPE):
+            return redirect('/')
+
+        student_id = request.values.get('id')
+        if student_id is None:
+            return redirect('/')
+        student_id = int(student_id)
+
+        student = db.query(User).filter(User.id == student_id).first()
+        if student is None:
+            return redirect('/')
+
+        class_id = student.class_.id
+        db.delete(student)
+
+        db.commit()
+
+        return redirect(f'class_students?id={class_id}')
+
