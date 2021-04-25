@@ -1,5 +1,5 @@
 from flask import current_app as app
-from flask import render_template, redirect, request, make_response
+from flask import render_template, redirect, request, make_response, send_file
 from pyeng.utils.helpers import *
 from pyeng.database import Session as DBSession
 from time import time
@@ -381,7 +381,7 @@ def index():
     with DBSession() as db:
         client = get_client(db)
         if check_client_type(client, User.STUDENT_TYPE):
-            return redirect('student?id=' + client.id)
+            return redirect(f'student?id={client.id}')
         elif check_client_type(client, User.GUEST_TYPE):
             return redirect('auth_page')
 
@@ -420,7 +420,7 @@ def reg():
         if unconf_user is None:
             return redirect(error_url.format(error='notexist'))
 
-        if db.query(User).filter(User.login == login).exists():
+        if db.query(User).filter(User.login == login).count() > 0:
             return redirect(error_url.format(error='loginexists'))
 
         password = generate_password_hash(password)
@@ -660,7 +660,9 @@ def task_page():
         return result
 
 
-# ---------------------------------
+@app.route('/task_runner')
+def task_runner():
+    pass
 
 
 @app.route('/task_runner_page')
@@ -706,10 +708,15 @@ def unauth():
         auth_hash = request.cookies.get('auth_hash')
         if auth_hash is None:
             return redirect('/')
-        response = make_response('/')
+        response = make_response(redirect('/'))
         response.set_cookie('auth_hash', '', expires=0)
 
         db.query(Auth).filter(Auth.auth_hash == auth_hash).delete()
         db.commit()
 
         return response
+
+
+@app.route('/scripts/<path:filename>', methods=['GET'])
+def get_script(filename):
+    return send_file(f'scripts/{filename}')

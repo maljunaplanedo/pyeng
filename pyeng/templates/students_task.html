@@ -11,16 +11,16 @@
     </a>
   {% endif %}
 
-  Статус: {{ task.status }}
-  Результат: {{ task.result }}
-  Условия: {{ task.given }}
-  Ответы: {{ students_task.answers }}
-  Правильные ответы: {{ task.answer }}
-  Время начала: {{ students_task.begin_time }}
-  Было дано времени: {{ task.duration }}
+  Статус: {{ task.status }} <br />
+  Результат: {{ task.result }} <br />
+  Условия: {{ task.given }} <br />
+  Ответы: {{ students_task.answers }} <br />
+  Правильные ответы: {{ task.answer }} <br />
+  Время начала: {{ students_task.begin_time }} <br />
+  Было дано времени: {{ task.duration }} <br />
 
 {% else %}
-
+  <a href="student?id={{ student.id }}">Назад</a>
   <a href="task_runner_page?id={{ students_task.id }}">Перейти к выполнению</a>
 
 {% endif %}
