@@ -27,6 +27,8 @@ def get_client(db):
     auth_hash = request.cookies.get('auth_hash')
 
     auth = db.query(Auth).filter(Auth.auth_hash == auth_hash).first()
+    if auth is None:
+        return None
     client = db.query(User).filter(User.id == auth.user_id).first()
 
     return client
