@@ -5,7 +5,7 @@
 <ul>
   {% for students_task in class_task.students_tasks %}
     <li>
-      <a href="student?id={{ students_task.student }}">
+      <a href="students_task?id={{ students_task.id }}">
         {{ students_task.student.name + ' ' + students_task.student.surname }}
       </a>
       Результат: {{ students_task.result }}

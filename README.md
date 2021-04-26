@@ -62,6 +62,7 @@
     2.4 Click "Добавить"
    
 3. Add a class:
+   
     3.1 Go back to the main page
     
     3.2 Click "Классы"
@@ -71,7 +72,10 @@
     3.4 Specify class name. For example, "11а".
    
 4. Add a student to the class
+   
     4.1 Click on your new class
+
+    4.2 Click "Ученики"
    
     4.2 Click "Добавить ученика"
    
@@ -82,6 +86,7 @@
     4.5 !COPY THE INVITE CODE!
    
 5. Register the student
+   
     5.1 Click "Выйти"
    
     5.2 Click "Зарегистрируйтесь"
@@ -91,6 +96,7 @@
     5.4 Click "Зарегистрироваться"
    
 6. Assign a task to the class
+   
     6.1 Authorize as a teacher
    
     6.2 Go to the class, click "Ученики" and make sure the new student is there.
@@ -117,6 +123,7 @@
     7.6 Click "Завершить"
 
 8. Check the results
+   
     8.1 Click "Выйти"
    
     8.2 Authorize as a teacher
