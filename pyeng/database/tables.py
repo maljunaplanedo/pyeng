@@ -144,7 +144,7 @@ class StudentsTask(Base):
         if self.status == self.FINISHED_STATUS:
             return int(-2e9)
 
-        current_time = time.time()
+        current_time = int(time.time())
         end_time = self.begin_time + self.task.duration
         if current_time > end_time:
             self.status = self.FINISHED_STATUS

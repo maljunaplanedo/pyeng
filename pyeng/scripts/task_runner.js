@@ -121,14 +121,16 @@ function checkLetter(event) {
 
 function stop() {
 
-	$.post('task_runner', {command: 'end', student_task: window.STUDENT_TASK_ID});
-	document.location.href = 'index.php';
+	$.post('task_runner', {command: 'end', student_task: window.STUDENT_TASK_ID},
+	        function(data) {
+	            document.location.href = '/';
+	        });
 
 }
 
 function checkThrowers(data) {
 	if (data['command'] == 'to_index')
-		document.location.href = 'index.php';
+		document.location.href = '/';
 }
  
 function init(data) {

@@ -1,6 +1,6 @@
 <a href="class_tasks?id={{ class_task.class_.id }}">Назад</a><br />
 Результаты {{ class_task.class_.name }} по заданию
-<a href="task?id={{ class_task.task.id }}">class_task.task.name</a>:
+<a href="task?id={{ class_task.task.id }}">{{ class_task.task.name }}</a>:
 
 <ul>
   {% for students_task in class_task.students_tasks %}

@@ -4,12 +4,8 @@ from pyeng.utils.helpers import *
 from pyeng.database import Session as DBSession
 from time import time
 from werkzeug.security import generate_password_hash, check_password_hash
-from pyeng import AUTH_HASH_LEN, AUTH_HASH_COOKIE_LIFESPAN
-
-
-@app.route('/test', methods=['GET'])
-def test():
-    return str(request.values.get('name'))
+from pyeng import AUTH_HASH_LEN, AUTH_HASH_COOKIE_LIFESPAN, TASK1_FULL_WORD_BONUS, TASK1_WRONG_LETTER_FINE
+import json
 
 
 @app.route('/add_class', methods=['POST'])
@@ -253,10 +249,12 @@ def auth():
             return redirect(error_url)
 
         auth_hash = generate_random_string(AUTH_HASH_LEN)
-        db.add(Auth(auth_hash, candidate))
+        auth_object = Auth(generate_password_hash(auth_hash), candidate)
+        db.add(auth_object)
         db.commit()
 
         response = make_response(redirect('/'))
+        response.set_cookie('auth_id', str(auth_object.id), max_age=AUTH_HASH_COOKIE_LIFESPAN)
         response.set_cookie('auth_hash', auth_hash, max_age=AUTH_HASH_COOKIE_LIFESPAN)
 
         return response
@@ -660,9 +658,96 @@ def task_page():
         return result
 
 
-@app.route('/task_runner')
+@app.route('/task_runner', methods=['POST'])
 def task_runner():
-    pass
+    with DBSession() as db:
+        client = get_client(db)
+
+        answer = {}
+        if not check_client_type(client, User.STUDENT_TYPE):
+            return json.dumps({'command': 'to_index'})
+
+        command = request.values.get('command')
+
+        students_task_id = request.values.get('student_task')
+        if command is None or students_task_id is None:
+            return json.dumps({'command': 'to_index'})
+        students_task_id = int(students_task_id)
+
+        students_task = db.query(StudentsTask).get(students_task_id)
+        if students_task is None:
+            return json.dumps({'command': 'to_index'})
+
+        other_running_task = students_task.student.get_running_task()
+        if other_running_task is not None and other_running_task.id != students_task.id:
+            return json.dumps({'command': 'to_index'})
+
+        time_left = students_task.update_time()
+        db.commit()
+
+        if students_task.status == StudentsTask.FINISHED_STATUS or time_left < 0 or command == 'end':
+            students_task.status = StudentsTask.FINISHED_STATUS
+            answer.update({'command': 'to_index'})
+        elif command == 'init':
+            answer['command'] = 'ok'
+            answer['task_type'] = int(students_task.task.type)
+            answer['task_name'] = students_task.task.name
+            answer['given'] = students_task.task.given
+
+            if students_task.status == StudentsTask.NOT_STARTED_STATUS:
+                students_task.begin_time = int(time())
+                students_task.status = StudentsTask.RUNNING_STATUS
+                answer['time_left'] = students_task.task.duration
+
+                if students_task.task.type == 1:
+                    gap_nom = students_task.task.given.count('##')
+                    emp = []
+                    for i in range(gap_nom):
+                        emp.append('')
+
+                    emp = json.dumps(emp)
+                    students_task.answers = emp
+            else:
+                answer['time_left'] = time_left
+
+            answer['result'] = students_task.result
+            answer['answers'] = students_task.answers
+        elif students_task.status == StudentsTask.NOT_STARTED_STATUS:
+            answer.update({'command': 'to_index'})
+        elif command == 'input':
+            if students_task.task.type == 1:
+                gap_nom = request.values.get('gap_nom')
+                letter = request.values.get('letter')
+
+                if gap_nom is None or letter is None:
+                    return json.dumps({'command': 'to_index'})
+
+                gap_nom = int(gap_nom)
+                true_answers = json.loads(students_task.task.answer)
+                clients_answers = json.loads(students_task.answers)
+
+                if (gap_nom >= len(true_answers) or
+                        len(true_answers[gap_nom]) <= len(clients_answers[gap_nom])):
+                    return json.dumps({'command': 'to_index'})
+
+                if true_answers[gap_nom][len(clients_answers[gap_nom])] == letter:
+                    clients_answers[gap_nom] += letter
+
+                    if clients_answers[gap_nom] == true_answers[gap_nom]:
+                        answer['full_word'] = 'true'
+                        clients_answers[gap_nom] += '##'
+                        students_task.result += TASK1_FULL_WORD_BONUS
+                    students_task.answers = json.dumps(clients_answers)
+                    answer['command'] = 'good'
+                else:
+                    students_task.result -= TASK1_WRONG_LETTER_FINE
+                    answer['command'] = 'bad'
+
+            answer['result'] = students_task.result
+            answer['time_left'] = time_left
+
+        db.commit()
+        return json.dumps(answer)
 
 
 @app.route('/task_runner_page')
@@ -705,13 +790,21 @@ def tasks_page():
 @app.route('/unauth')
 def unauth():
     with DBSession() as db:
+        auth_id = request.cookies.get('auth_id')
         auth_hash = request.cookies.get('auth_hash')
-        if auth_hash is None:
+        if auth_id is None or auth_hash is None:
             return redirect('/')
+        auth_id = int(auth_id)
+
+        auth_object = db.query(Auth).get(auth_id)
+        if not check_password_hash(auth_object.auth_hash, auth_hash):
+            return redirect('/')
+
         response = make_response(redirect('/'))
+        response.set_cookie('auth_id', '', expires=0)
         response.set_cookie('auth_hash', '', expires=0)
 
-        db.query(Auth).filter(Auth.auth_hash == auth_hash).delete()
+        db.delete(db.query(Auth).get(auth_id))
         db.commit()
 
         return response

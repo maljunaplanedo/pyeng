@@ -7,6 +7,7 @@ from pyeng import INVITE_CODE_LEN
 import random
 import string
 import time
+from werkzeug.security import check_password_hash
 
 
 def create_database():
@@ -21,15 +22,20 @@ def create_teachers_account(name, surname):
 
 
 def get_client(db):
-    if 'auth_hash' not in request.cookies:
-        return None
-
+    auth_id = request.cookies.get('auth_id')
     auth_hash = request.cookies.get('auth_hash')
 
-    auth = db.query(Auth).filter(Auth.auth_hash == auth_hash).first()
+    if auth_id is None or auth_hash is None:
+        return None
+
+    auth_id = int(auth_id)
+
+    auth = db.query(Auth).get(auth_id)
     if auth is None:
         return None
-    client = db.query(User).filter(User.id == auth.user_id).first()
+    if not check_password_hash(auth.auth_hash, auth_hash):
+        return None
+    client = db.query(User).get(auth.user_id)
 
     return client
 
