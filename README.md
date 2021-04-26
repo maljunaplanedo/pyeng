@@ -6,17 +6,22 @@
 
 1. Clone the repository:
 `git clone https://github.com/maljunaplanedo/pyeng`
-2. Create Python virtual environment:
+2. Enter the directory:
+`cd pyeng`
+3. Create Python virtual environment:
 `python3 -m venv env`
-3. Activate it:
+4. Activate it:
 `source env/bin/activate`   
-4. Install project requirements:
+5. Install project requirements:
 `pip install -r requirements.txt`
-5. Create database:
-`python create_database.py`
-6. Add teacher's account (specify name and surname as command line arguments):
+6. Create database:
+
+   `mkdir databases` 
+
+   `python create_database.py`
+7. Add teacher's account (specify name and surname as command line arguments):
 `python create_teachers_account.py Marat Satskevich`
-7. You will be given an invite code for the teacher. COPY IT!
+8. You will be given an invite code for the teacher. COPY IT!
 
 ## Running
 (do all the steps inside the virtual environment!)
